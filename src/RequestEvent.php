@@ -21,6 +21,9 @@ class RequestEvent extends Event
     const REFRESH_TOKEN_ISSUED = 'refresh_token.issued';
     const ACCESS_TOKEN_ISSUED = 'access_token.issued';
 
+    const ACCESS_TOKEN_REVOKED = 'access_token.revoked';
+    const REFRESH_TOKEN_REVOKED = 'refresh_token.revoked';
+
     /**
      * @var ServerRequestInterface
      */

@@ -50,6 +50,23 @@ class ClientCredentialsGrant extends AbstractGrant
     /**
      * {@inheritdoc}
      */
+    public function canRespondToRevokeTokenRequest(ServerRequestInterface $request)
+    {
+        $requestParameters = (array) $request->getParsedBody();
+
+        if (isset($requestParameters['token'])) {
+            if (array_key_exists('token_type_hint', $requestParameters)) {
+                return in_array($requestParameters['token_type_hint'], ['access_token']);
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getIdentifier()
     {
         return 'client_credentials';

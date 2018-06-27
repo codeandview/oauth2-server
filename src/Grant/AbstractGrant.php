@@ -10,6 +10,7 @@
  */
 namespace League\OAuth2\Server\Grant;
 
+use Lcobucci\JWT\Parser;
 use League\Event\EmitterAwareTrait;
 use League\OAuth2\Server\CryptKey;
 use League\OAuth2\Server\CryptTrait;
@@ -28,6 +29,7 @@ use League\OAuth2\Server\Repositories\ScopeRepositoryInterface;
 use League\OAuth2\Server\Repositories\UserRepositoryInterface;
 use League\OAuth2\Server\RequestEvent;
 use League\OAuth2\Server\RequestTypes\AuthorizationRequest;
+use League\OAuth2\Server\ResponseTypes\ResponseTypeInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
@@ -502,6 +504,44 @@ abstract class AbstractGrant implements GrantTypeInterface
     }
 
     /**
+     * @inheritDoc
+     */
+    public function respondToRevokeTokenRequest(
+        ServerRequestInterface $request,
+        ResponseTypeInterface $responseType
+    )
+    {
+        // section 2.1 of RFC7009, "The authorization server first validates the client credentials"
+        $this->validateClient($request);
+
+        $tokenTypeHint = $this->getRequestParameter('token_type_hint', $request, 'refresh_token');
+
+        if (null === ($jwt = $this->getRequestParameter('token', $request))) {
+            throw OAuthServerException::invalidRequest('token');
+        }
+
+        try {
+            $token = (new Parser())->parse($jwt);
+            $tokenId = $token->getClaim('jti');
+            switch ($tokenTypeHint) {
+                case 'access_token':
+                    $this->accessTokenRepository->revokeAccessToken($tokenId);
+                    $this->getEmitter()->emit(new RequestEvent(RequestEvent::ACCESS_TOKEN_REVOKED, $request));
+                    break;
+                case 'refresh_token':
+                default:
+                    $this->refreshTokenRepository->revokeRefreshToken($tokenId);
+                    $this->getEmitter()->emit(new RequestEvent(RequestEvent::REFRESH_TOKEN_REVOKED, $request));
+                    break;
+            }
+        } catch (\InvalidArgumentException $exception) {
+            // section 2.2 of RFC7009, "HTTP status code must be 200 [...] if the client submitted an invalid token"
+        }
+
+        return $responseType;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function canRespondToAccessTokenRequest(ServerRequestInterface $request)
@@ -512,6 +552,23 @@ abstract class AbstractGrant implements GrantTypeInterface
             array_key_exists('grant_type', $requestParameters)
             && $requestParameters['grant_type'] === $this->getIdentifier()
         );
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function canRespondToRevokeTokenRequest(ServerRequestInterface $request)
+    {
+        $requestParameters = (array) $request->getParsedBody();
+
+        if (isset($requestParameters['token'])) {
+            if (array_key_exists('token_type_hint', $requestParameters)) {
+                return in_array($requestParameters['token_type_hint'], ['access_token', 'refresh_token']);
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**

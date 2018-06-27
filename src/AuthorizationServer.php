@@ -198,6 +198,31 @@ class AuthorizationServer implements EmitterAwareInterface
     }
 
     /**
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
+     *
+     * @return ResponseInterface
+     */
+    public function respondToRevokeTokenRequest(ServerRequestInterface $request, ResponseInterface $response)
+    {
+        foreach ($this->enabledGrantTypes as $grantType) {
+            if (!$grantType->canRespondToRevokeTokenRequest($request)) {
+                continue;
+            }
+            $tokenResponse = $grantType->respondToRevokeTokenRequest(
+                $request,
+                $this->getResponseType()
+            );
+
+            if ($tokenResponse instanceof ResponseTypeInterface) {
+                return $tokenResponse->generateHttpResponse($response);
+            }
+        }
+
+        throw OAuthServerException::invalidRequest('token and/or token_type_hint');
+    }
+
+    /**
      * Get the token type that grants will return in the HTTP response.
      *
      * @return ResponseTypeInterface

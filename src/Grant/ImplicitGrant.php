@@ -93,8 +93,28 @@ class ImplicitGrant extends AbstractAuthorizeGrant
         ResponseTypeInterface $responseType,
         \DateInterval $accessTokenTTL
     ) {
-        throw new \LogicException('This grant does not used this method');
+        throw new \LogicException('This grant does not use this method');
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function respondToRevokeTokenRequest(
+        ServerRequestInterface $request,
+        ResponseTypeInterface $responseType
+    )
+    {
+        throw new \LogicException('This grant does not handle token revoke');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function canRespondToRevokeTokenRequest(ServerRequestInterface $request)
+    {
+        return false;
+    }
+
 
     /**
      * {@inheritdoc}

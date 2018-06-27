@@ -56,6 +56,16 @@ interface GrantTypeInterface extends EmitterAwareInterface
     );
 
     /**
+     * @param ServerRequestInterface $request
+     * @param ResponseTypeInterface $responseType
+     * @return ResponseTypeInterface
+     */
+    public function respondToRevokeTokenRequest(
+        ServerRequestInterface $request,
+        ResponseTypeInterface $responseType
+    );
+
+    /**
      * The grant type should return true if it is able to response to an authorization request
      *
      * @param ServerRequestInterface $request
@@ -98,6 +108,14 @@ interface GrantTypeInterface extends EmitterAwareInterface
      * @return bool
      */
     public function canRespondToAccessTokenRequest(ServerRequestInterface $request);
+
+    /**
+     * The grant type should return true if it is able to revoke the token passed to the request
+     *
+     * @param ServerRequestInterface $request
+     * @return bool
+     */
+    public function canRespondToRevokeTokenRequest(ServerRequestInterface $request);
 
     /**
      * Set the client repository.
