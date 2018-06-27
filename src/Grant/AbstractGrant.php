@@ -512,7 +512,7 @@ abstract class AbstractGrant implements GrantTypeInterface
     )
     {
         // section 2.1 of RFC7009, "The authorization server first validates the client credentials"
-        $this->validateClient($request);
+        $client = $this->validateClient($request);
 
         $tokenTypeHint = $this->getRequestParameter('token_type_hint', $request, 'refresh_token');
 
@@ -525,11 +525,17 @@ abstract class AbstractGrant implements GrantTypeInterface
             $tokenId = $token->getClaim('jti');
             switch ($tokenTypeHint) {
                 case 'access_token':
+                    if (false === $this->accessTokenRepository->tokenIssuedByClient($tokenId, $client)) {
+                        throw OAuthServerException::invalidClient();
+                    }
                     $this->accessTokenRepository->revokeAccessToken($tokenId);
                     $this->getEmitter()->emit(new RequestEvent(RequestEvent::ACCESS_TOKEN_REVOKED, $request));
                     break;
                 case 'refresh_token':
                 default:
+                    if (false === $this->refreshTokenRepository->tokenIssuedByClient($tokenId, $client)) {
+                        throw OAuthServerException::invalidClient();
+                    }
                     $this->refreshTokenRepository->revokeRefreshToken($tokenId);
                     $this->getEmitter()->emit(new RequestEvent(RequestEvent::REFRESH_TOKEN_REVOKED, $request));
                     break;

@@ -15,7 +15,7 @@ use League\OAuth2\Server\Exception\UniqueTokenIdentifierConstraintViolationExcep
 /**
  * Refresh token interface.
  */
-interface RefreshTokenRepositoryInterface extends RepositoryInterface
+interface RefreshTokenRepositoryInterface extends RepositoryInterface, TokenRepositoryInterface
 {
     /**
      * Creates a new refresh token
