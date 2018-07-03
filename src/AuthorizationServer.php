@@ -23,6 +23,7 @@ use League\OAuth2\Server\ResponseTypes\BearerTokenResponse;
 use League\OAuth2\Server\ResponseTypes\ResponseTypeInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Zend\Diactoros\Response\EmptyResponse;
 
 class AuthorizationServer implements EmitterAwareInterface
 {
@@ -190,7 +191,7 @@ class AuthorizationServer implements EmitterAwareInterface
             );
 
             if ($tokenResponse instanceof ResponseTypeInterface) {
-                return $tokenResponse->generateHttpResponse($response);
+                return new EmptyResponse(200);
             }
         }
 
