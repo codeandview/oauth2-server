@@ -72,7 +72,7 @@ class AuthorizationServer implements EmitterAwareInterface
     /**
      * @var string|Key
      */
-    private $encryptionKey;
+    protected $encryptionKey;
 
     /**
      * @var string
