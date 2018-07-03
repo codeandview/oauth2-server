@@ -191,7 +191,7 @@ class AuthorizationServer implements EmitterAwareInterface
             );
 
             if ($tokenResponse instanceof ResponseTypeInterface) {
-                return new EmptyResponse(200);
+                return $tokenResponse->generateHttpResponse($response);
             }
         }
 
@@ -216,7 +216,7 @@ class AuthorizationServer implements EmitterAwareInterface
             );
 
             if ($tokenResponse instanceof ResponseTypeInterface) {
-                return $tokenResponse->generateHttpResponse($response);
+                return new EmptyResponse(200);
             }
         }
 
